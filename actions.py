@@ -54,6 +54,8 @@ while (1):
 		else:
 			print "OOPS! Try again!"
 
+print "hi"
+
 
 DB.commit()
 
