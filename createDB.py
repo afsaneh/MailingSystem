@@ -32,9 +32,10 @@ conn.execute('''CREATE TABLE if not exists MESSAGE
 
 
 conn.execute('''CREATE TABLE if not exists ATTACHMENT
-	(Attkey INTEGER PRIMARY KEY AUTOINCREMENT,
-	FileName TEXT NOT NULl,
-	FileContent TEXT);''')
+	(FileName TEXT NOT NULl,
+	FileContent TEXT,
+	MsgKEY INT,
+	FOREIGN KEY (MsgKEY) REFERENCES MESSAGE(MKEY));''')
 
 conn.execute('''CREATE VIEW if not exists INBOX AS
 	select MKEY, SUBJ, TIMESENT, READTAG, BODY, UID1, UID2, DELTAG

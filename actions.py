@@ -1,5 +1,6 @@
 import createDB
 import sqlite3
+import os.path
 from datetime import date, datetime
 
 DB = sqlite3.connect('Mailing.db')
@@ -53,24 +54,25 @@ def afterLogin(userName):
 			conn.execute("SELECT count(*) FROM USER where UserName = ? and Login = ?",(userName, 1))
 			unique = conn.fetchone()[0]
 			if (unique == 1):
-				try:
-					reciever = raw_input("Reciever: ")
-					conn.execute("SELECT count(*) FROM USER where UserName = ?",(reciever,))
-					unique = conn.fetchone()[0]
-					if (unique == 1):
-						subject = raw_input("Subject: ")
-						msg = raw_input("Message: ")
-						time = datetime.now()
-						conn.execute("INSERT INTO MESSAGE(SUBJ, TIMESENT, DELTAG, READTAG, BODY, UID1, UID2) VALUES(?,?,?,?,?,?,?)",\
-							(subject,time, 0, 0, msg, userName,reciever))
-						DB.commit()
-					else:
-						print "UserName is not valid. Try again"
-						continue
-				except Exception as e:
-					DB.rollback()
-					print "OOPS! Please try again --sending error\n"
+				#try:
+				reciever = raw_input("Reciever: ")
+				conn.execute("SELECT count(*) FROM USER where UserName = ?",(reciever,))
+				unique = conn.fetchone()[0]
+				if (unique == 1):
+					subject = raw_input("Subject: ")
+					msg = raw_input("Message: ")
+					time = datetime.now()
+					conn.execute("INSERT INTO MESSAGE(SUBJ, TIMESENT, DELTAG, READTAG, BODY, UID1, UID2) VALUES(?,?,?,?,?,?,?)",\
+						(subject,time, 0, 0, msg, userName,reciever))
+					updateAttachTable(userName, conn.lastrowid)
+					DB.commit()
+				else:
+					print "UserName is not valid. Try again"
 					continue
+				# except Exception as e:
+				# 	DB.rollback()
+				# 	print "OOPS! Please try again --sending error\n"
+				# 	continue
 			else:
 				print "You should log in to the system first!\n"
 
@@ -80,6 +82,11 @@ def afterLogin(userName):
 			for msg in allmsg:
 				print 'num: {0}, From: {1}, Subject: {2}, Body: {3}, On: {4}, Read: {5} '.format(msg[0], msg[5], msg[1], msg[4], msg[2], msg[3])
 				print "\n"
+				conn.execute("SELECT FileContent, fileName from ATTACHMENT where MsgKEY = ?", (msg[0],))
+				allAttach = conn.fetchall()
+				for attach in allAttach:
+					with open(attach[1], "wb") as output_file:
+						output_file.write(attach[0])
 
 
 		elif (action == '3'): #Show Sent
@@ -115,6 +122,17 @@ def afterLogin(userName):
 				print "Try again! --Logout error"
 				continue
 
+def updateAttachTable(userName, lastrowid):
+	attachment = raw_input("Do you want to attach a file? Y/N\n")
+	while (attachment == 'y' or attachment == 'Y'):
+		path = raw_input("Enter file path: ")
+		name = os.path.split(path)
+		with open(path, "rb") as att:
+			ablob = att.read()
+			conn.execute("INSERT INTO ATTACHMENT (FileName, FileContent, MsgKEY) VALUES(?, ?, ?)",\
+				(name[1], sqlite3.Binary(ablob),lastrowid))
+			DB.commit()
+		attachment = raw_input("Do you want to attach another file? Y/N\n")
 
 
 
