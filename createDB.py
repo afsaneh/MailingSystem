@@ -37,15 +37,15 @@ conn.execute('''CREATE TABLE if not exists ATTACHMENT
 	FileContent TEXT);''')
 
 conn.execute('''CREATE VIEW if not exists INBOX AS
-	select MKEY, SUBJ, TIMESENT, READTAG, BODY, UID1
+	select MKEY, SUBJ, TIMESENT, READTAG, BODY, UID1, UID2, DELTAG
 	from MESSAGE;''')
 
 conn.execute('''CREATE VIEW if not exists SENT AS
-	select MKEY, SUBJ, TIMESENT, BODY, UID2
+	select MKEY, SUBJ, TIMESENT, BODY, UID1, UID2, DELTAG
 	from MESSAGE;''')
 
 conn.execute('''CREATE VIEW if not exists TRASH AS
-	select DELTAG
+	select MKEY, SUBJ, BODY, DELTAG, UID1, UID2
 	from MESSAGE;''')
 
 print "TableS created successfully"
